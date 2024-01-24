@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:layout_width="match_parent"
+            android:text="@string/image_from_camera"
+            android:gravity="center"
+            android:background="@color/light_grey"
+            android:paddingTop="10dp"
+            android:textColor="@color/black"
+            android:paddingBottom="10dp"
+            android:textSize="16sp"
+            android:id="@+id/pickFromCamera"
+            android:layout_height="match_parent" />
+
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:text="@string/image_from_gallery"
+            android:gravity="center"
+            android:paddingTop="10dp"
+            android:layout_marginTop="20dp"
+            android:textColor="@color/black"
+            android:background="@color/light_grey"
+            android:paddingBottom="10dp"
+            android:textSize="16sp"
+            android:layout_width="match_parent"
+            android:id="@+id/pickFromGallery"
+            android:layout_height="match_parent" />
+
+
+    </LinearLayout>
+</layout>
