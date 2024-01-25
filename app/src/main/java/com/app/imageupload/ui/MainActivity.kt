@@ -211,10 +211,10 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
             checkPermissionGrand = checkPermissionGrand && it
         }
         if(REQUEST_PICK_CODE== ImagePickOptionDialog.CAMERA_CODE){
-            if(checkPermissionGrand){
-                Toast.makeText(this, getString(R.string.camera_permission_is_denied), Toast.LENGTH_SHORT).show()
-            }else{
+            if (checkPermissionGrand) {
                 pickFromCamera()
+            } else {
+                Toast.makeText(this, getString(R.string.camera_permission_is_denied), Toast.LENGTH_SHORT).show()
             }
         }else if(REQUEST_PICK_CODE== ImagePickOptionDialog.GALLERY_CODE){
             if(checkPermissionGrand){

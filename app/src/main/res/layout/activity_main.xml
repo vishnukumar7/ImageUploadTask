@@ -25,7 +25,7 @@
             android:text="@string/name_of_file"
             android:layout_marginTop="50dp"
             android:textStyle="bold"
-            android:textSize="20sp"
+            android:textSize="16sp"
             android:textColor="@color/black"
             android:padding="10dp"
             app:layout_constraintTop_toBottomOf="@id/getImages"
@@ -37,11 +37,12 @@
         <androidx.appcompat.widget.AppCompatTextView
             android:layout_marginTop="50dp"
             android:padding="10dp"
-            android:textSize="18sp"
+            android:textSize="14sp"
             android:textColor="@color/black"
             app:layout_constraintTop_toBottomOf="@id/getImages"
             app:layout_constraintStart_toEndOf="@id/fileNameView"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
+            app:layout_constraintEnd_toEndOf="parent"
             android:id="@+id/fileNameTxt"
             android:layout_height="wrap_content"/>
 
