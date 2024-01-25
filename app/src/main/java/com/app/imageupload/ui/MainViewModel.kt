@@ -1,8 +1,11 @@
 package com.app.imageupload.ui
 
+import android.app.Activity
 import android.app.Application
 import android.content.Context
 import android.net.ConnectivityManager
+import android.net.Uri
+import android.provider.MediaStore
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -29,13 +32,22 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _errorMessage = MutableLiveData<String>()
     val errorMessage : LiveData<String> = _errorMessage
 
+    fun getPathFromUri(activity: Activity,uri: Uri?): String? {
+        if(uri==null)
+            return null
+        val proj : Array<String> = arrayOf(MediaStore.Images.Media.DATA)
+        val cursor = activity.managedQuery(uri,proj,null,null,null)
+        val cursorIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
+        cursor.moveToFirst()
+        return cursor.getString(cursorIndex)
+    }
 
 
-    fun uploadImage(context: Context,filePath : String){
-        if(networkCheck(context)){
+    fun uploadImage(activity: Activity,filePathUri : Uri){
+        if(networkCheck(activity)){
             CoroutineScope(Dispatchers.IO).launch {
                 _progressBar.postValue(true)
-                val file = File(filePath)
+                val file = File(getPathFromUri(activity,filePathUri))
                 val requestBody = RequestBody.create(MultipartBody.FORM,file)
                 val body = MultipartBody.Part.createFormData("image",file.name,requestBody)
                 val apiInterface = RetrofitClient.buildService(ApiInterface::class.java)
@@ -45,19 +57,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         call: Call<ResponseBody>,
                         response: Response<ResponseBody>
                     ) {
-                        _progressBar.postValue(true)
+                        _progressBar.postValue(false)
                         if(response.isSuccessful && response.body()!=null){
                             //success response
-                            _errorMessage.postValue(context.getString(R.string.image_uploaded_successfully))
+                            _errorMessage.postValue(activity.getString(R.string.image_uploaded_successfully))
                         }else{
                             //failure response
-                            _errorMessage.postValue(context.getString(R.string.image_upload_failed))
+                            _errorMessage.postValue(activity.getString(R.string.image_upload_failed))
                         }
 
                     }
 
                     override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                        _progressBar.postValue(true)
+                        _progressBar.postValue(false)
                         // error response or network failure
                         _errorMessage.postValue(t.message)
                     }
@@ -65,7 +77,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 })
             }
         }else{
-            _errorMessage.postValue(context.getString(R.string.check_your_internet_connection))
+            _errorMessage.postValue(activity.getString(R.string.check_your_internet_connection))
         }
 
     }

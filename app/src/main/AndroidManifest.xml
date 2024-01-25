@@ -17,17 +17,16 @@
     <uses-permission android:name="android.permission.CAMERA"/>
 
     <application
-        android:allowBackup="true"
-        android:dataExtractionRules="@xml/data_extraction_rules"
-        android:fullBackupContent="@xml/backup_rules"
+        android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:largeHeap="true"
         android:hardwareAccelerated="false"
+        android:requestLegacyExternalStorage="true"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.ImageUpload"
-        tools:targetApi="31">
+        android:usesCleartextTraffic="true"
+        android:theme="@style/Theme.ImageUpload">
         <activity
             android:name=".ui.MainActivity"
             android:exported="true">

@@ -7,26 +7,24 @@ import android.app.ProgressDialog
 import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
 import android.view.View
-import android.view.ViewGroup
 import android.view.Window
 import android.widget.ImageView
-import android.widget.RelativeLayout
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
-import com.app.imageupload.util.ImagePickOptionDialog
 import com.app.imageupload.R
 import com.app.imageupload.databinding.ActivityMainBinding
+import com.app.imageupload.util.ImagePickOptionDialog
+import com.bumptech.glide.Glide
+import java.io.File
 
 class MainActivity : AppCompatActivity(), View.OnClickListener,
     ImagePickOptionDialog.ImagePickListener {
@@ -34,7 +32,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
     private lateinit var dataBinding: ActivityMainBinding
     private var imagePickOptionDialog : ImagePickOptionDialog? =null
     private var REQUEST_PICK_CODE=0
-    var imageUri : Uri? =null
+    private var imageUri : Uri? =null
+
 
     private lateinit var mainViewModel: MainViewModel
 
@@ -92,28 +91,33 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
             }
 
             R.id.preview -> {
-                showImage(imageUri)
+               if(imageUri==null)
+                   Toast.makeText(this, getString(R.string.select_your_image), Toast.LENGTH_SHORT).show()
+                else{
+                   previewImage()
+               }
             }
 
             R.id.uploadImage -> {
-                getPathFromUri(imageUri)?.let { mainViewModel.uploadImage(this, it) }
+                if(imageUri==null)
+                    Toast.makeText(this, getString(R.string.select_your_image), Toast.LENGTH_SHORT).show()
+                else
+                    mainViewModel.uploadImage(this, imageUri!!)
             }
         }
     }
 
-    private fun showImage(imageUri : Uri?){
-
-        val imageDialog = Dialog(this)
+    private fun previewImage(){
+        val imageDialog = Dialog(this,android.R.style.Theme_Black_NoTitleBar_Fullscreen)
         imageDialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
-        imageDialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-
         imageDialog.setCancelable(true)
-        imageDialog.setOnDismissListener {
-
+        val view=layoutInflater.inflate(R.layout.image_dialog_fragment,null)
+        imageDialog.setContentView(view)
+        Glide.with(this).load(File(mainViewModel.getPathFromUri(this,imageUri))).into(view.findViewById(R.id.imageView))
+        val  backBtn = view.findViewById(R.id.backBtn) as ImageView
+        backBtn.setOnClickListener {
+            imageDialog.dismiss()
         }
-        val imageView = ImageView(this)
-        imageView.setImageURI(imageUri)
-        imageDialog.addContentView(imageView,RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.MATCH_PARENT))
         imageDialog.show()
 
     }
@@ -146,6 +150,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
         imageUri=null
         dataBinding.preview.visibility=View.GONE
         dataBinding.uploadImage.visibility=View.GONE
+        dataBinding.fileNameTxt.text=""
         val intent = Intent(Intent.ACTION_PICK,MediaStore.Images.Media.INTERNAL_CONTENT_URI)
         registerImageResult.launch(intent)
     }
@@ -158,14 +163,6 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
         val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
         intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
         registerImageResult.launch(intent)
-    }
-
-    private fun getPathFromUri(uri: Uri?): String? {
-        val proj : Array<String> = arrayOf(MediaStore.Images.Media.DATA)
-        val cursor = managedQuery(uri,proj,null,null,null)
-        val cursorIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
-        cursor.moveToFirst()
-        return cursor.getString(cursorIndex)
     }
 
 
@@ -182,33 +179,28 @@ class MainActivity : AppCompatActivity(), View.OnClickListener,
 
     private val registerImageResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){
         if(it.resultCode==Activity.RESULT_OK){
-            if(REQUEST_PICK_CODE == ImagePickOptionDialog.GALLERY_CODE){
+
+            imageUri =  if(REQUEST_PICK_CODE == ImagePickOptionDialog.GALLERY_CODE){
                 val dataIntent = it.data
-                imageUri = dataIntent?.data
-                Log.e(TAG, ": image url : $imageUri", )
-                Log.e(TAG, ": image url authority : ${imageUri?.authority}", )
-                Log.e(TAG, ": image url encodedAuthority : ${imageUri?.encodedAuthority}", )
-                Log.e(TAG, ": image url encodedFragment : ${imageUri?.encodedFragment}", )
-                Log.e(TAG, ": image url encodedPath : ${imageUri?.encodedPath}", )
-                Log.e(TAG, ": image url encodedQuery : ${imageUri?.encodedQuery}", )
-                imageUri?.let {
-                    dataBinding.preview.visibility=View.VISIBLE
-                    dataBinding.uploadImage.visibility=View.VISIBLE
-                }
-                Log.e(TAG, ": image url path : ${getPathFromUri(imageUri)}", )
+                dataIntent?.data
             }else{
-                val dataIntent = it.data
-                imageUri?.let {
-                    dataBinding.preview.visibility=View.VISIBLE
-                    dataBinding.uploadImage.visibility=View.VISIBLE
-                    Log.e(TAG, ": image url full path : ${getPathFromUri(imageUri)}", )
+                imageUri
+            }
+            imageUri?.let {
+                dataBinding.preview.visibility=View.VISIBLE
+                dataBinding.uploadImage.visibility=View.VISIBLE
+                val filePath = mainViewModel.getPathFromUri(this,it)
+                filePath?.let {
+                    val fileName = filePath.substring(filePath.lastIndexOf("/")+1)
+                    dataBinding.fileNameTxt.text= fileName
                 }
-                Log.e(TAG, ": image url path : $imageUri", )
+                Log.e(TAG, ": image url path : $filePath")
             }
         } else {
             imageUri=null
             dataBinding.preview.visibility=View.GONE
             dataBinding.uploadImage.visibility=View.GONE
+            dataBinding.fileNameTxt.text=""
         }
 
     }
